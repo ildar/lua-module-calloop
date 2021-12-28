@@ -8,6 +8,7 @@ crate-type = ["cdylib"]
 name = "calloop"
 
 [dependencies]
+calloop = "0.9.1"
 mlua = { version = "0.7.0", features = ["module","lua53"] }
 
 [dev-dependencies]
