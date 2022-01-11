@@ -18,6 +18,7 @@ impl EventLoop<'_> {
         let res = lua.create_table()?;
         let el = EventLoop(rs_calloop::EventLoop::try_new()?);
         res.set("_self", lua.create_userdata(el)?)?;
+        res.set("get_signal", lua.create_function(EventLoop::get_signal)?)?;
         res.set("run", lua.create_function(EventLoop::run)?)?;
         Ok(res)
     }
@@ -30,6 +31,24 @@ impl EventLoop<'_> {
         Ok(res)
     }
     */
+
+    fn get_signal<'a>(lua: &'a Lua, luaself: LuaTable<'a>) -> LuaResult<LuaTable<'a>> {
+        let res: LuaTable = luaself.get("_signal").unwrap_or({
+            let res = lua.create_table()?;
+            res.set("_self",
+                lua.create_userdata(
+                    LoopSignal(
+                        luaself.get::<_, LuaAnyUserData>("_self")?
+                        .borrow_mut::<EventLoop>()?
+                        .0
+                        .get_signal()
+                    )
+                )?)?;
+            luaself.set("_signal", res.clone())?;
+            res
+            });
+        Ok(res)
+    }
 
     fn run(_: &Lua, (luaself, timeout, mut data, cb): (LuaTable, u64, LuaTable<'static>, Option<LuaFunction>))
             -> LuaResult<()> {
@@ -45,3 +64,11 @@ impl EventLoop<'_> {
         Ok(())
     }
 }
+
+// LoopSignal
+#[derive(Clone)]
+struct LoopSignal (rs_calloop::LoopSignal);
+impl LuaUserData for LoopSignal {}
+impl LoopSignal {
+}
+
