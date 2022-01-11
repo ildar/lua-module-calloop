@@ -51,10 +51,11 @@ impl EventLoop<'_> {
         let ud: LuaAnyUserData = luaself.get("_self")?;
         let mut ref_self = ud.borrow_mut::<EventLoop<'static>>()?;
         ref_self.0.run(std::time::Duration::from_millis(timeout), &mut data,
-            |_|{
+            |data| {
                 if cb.is_some() {
-                    let cb=cb.as_ref();
-                    cb.unwrap().call::<(),()>(());
+                    let cb = cb.as_ref();
+                    cb.unwrap().call::<LuaTable,()>( (*data).clone() )
+                        .unwrap();
                 }
             })?;
         Ok(())
@@ -72,7 +73,22 @@ impl LoopSignal {
             lua.create_userdata(
                 LoopSignal(ls)
             )?)?;
+        res.set("stop", lua.create_function(LoopSignal::stop)?)?;
+        res.set("wakeup", lua.create_function(LoopSignal::wakeup)?)?;
         Ok(res)
+    }
+
+    pub fn stop(_: &Lua, luaself: LuaTable) -> LuaResult<()> {
+        let ud: LuaAnyUserData = luaself.get("_self")?;
+        let ref_self = ud.borrow_mut::<Self>()?;
+        ref_self.0.stop();
+        Ok(())
+    }
+    pub fn wakeup(_: &Lua, luaself: LuaTable) -> LuaResult<()> {
+        let ud: LuaAnyUserData = luaself.get("_self")?;
+        let ref_self = ud.borrow_mut::<Self>()?;
+        ref_self.0.wakeup();
+        Ok(())
     }
 }
 
