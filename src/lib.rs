@@ -33,16 +33,12 @@ impl EventLoop<'_> {
     */
 
     fn get_signal<'a>(lua: &'a Lua, luaself: LuaTable<'a>) -> LuaResult<LuaTable<'a>> {
-        let res: LuaTable = luaself.get("_signal").unwrap_or({
-            let res = LoopSignal::new(lua,
-                    luaself.get::<_, LuaAnyUserData>("_self")?
-                    .borrow_mut::<EventLoop>()?
-                    .0
-                    .get_signal()
-                )?;
-            luaself.set("_signal", res.clone())?;
-            res
-            });
+        let res = LoopSignal::new(lua,
+                luaself.get::<_, LuaAnyUserData>("_self")?
+                .borrow::<EventLoop>()?
+                .0
+                .get_signal()
+            )?;
         Ok(res)
     }
 
@@ -80,13 +76,13 @@ impl LoopSignal {
 
     pub fn stop(_: &Lua, luaself: LuaTable) -> LuaResult<()> {
         let ud: LuaAnyUserData = luaself.get("_self")?;
-        let ref_self = ud.borrow_mut::<Self>()?;
+        let ref_self = ud.borrow::<Self>()?;
         ref_self.0.stop();
         Ok(())
     }
     pub fn wakeup(_: &Lua, luaself: LuaTable) -> LuaResult<()> {
         let ud: LuaAnyUserData = luaself.get("_self")?;
-        let ref_self = ud.borrow_mut::<Self>()?;
+        let ref_self = ud.borrow::<Self>()?;
         ref_self.0.wakeup();
         Ok(())
     }
