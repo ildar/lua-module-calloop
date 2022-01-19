@@ -1,6 +1,8 @@
 use mlua::prelude::*;
 use calloop as rs_calloop;
 
+mod timer;
+
 #[mlua::lua_module]
 fn calloop(lua: &'static Lua) -> LuaResult<LuaTable> {
     let exports = lua.create_table()?;

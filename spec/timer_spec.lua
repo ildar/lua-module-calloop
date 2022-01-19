@@ -1,0 +1,20 @@
+local calloop = require "calloop"
+local timer = require "calloop.timer"
+
+describe("calloop Rust module's", function()
+  describe("timer", function()
+    setup(function()
+      el = calloop.EventLoop.new()
+      tm = timer.Timer.new()
+    end)
+    it("can be created", function()
+      assert.is_table(tm)
+      assert.is.equal("timer::Timer", tm._EventSource)
+    end)
+    it("can be run", function()
+      local th = tm:handle()
+      assert.is_table(th)
+      th:add_timeout(500, "Timeout reached!")
+    end)
+  end)
+end)
