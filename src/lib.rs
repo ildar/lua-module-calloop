@@ -113,6 +113,7 @@ impl LoopHandle<'_> {
                 LoopHandle(lh)
             )?)?;
         res.set("insert_idle", lua.create_function(LoopHandle::insert_idle)?)?;
+        res.set("insert_source", lua.create_function(LoopHandle::insert_source)?)?;
         Ok(res)
     }
 
@@ -120,14 +121,29 @@ impl LoopHandle<'_> {
         let ud: LuaAnyUserData = luaself.get("_self")?;
         let ref_self = ud.borrow::<LoopHandle<'static>>()?;
         ref_self.0.insert_idle(
-            move |data| {
+            |data| {
                 if callback.is_some() {
-                    let cb = callback.as_ref();
-                    cb.unwrap().call::<LuaTable,()>( (*data).clone() )
+                    callback.unwrap().call::<LuaTable,()>( (*data).clone() )
                         .unwrap();
                 }
             });
         Ok(())
     }
+
+    pub fn insert_source(_: &Lua, (luaself, source, callback): (LuaTable, LuaTable, Option<LuaFunction<'static>>)) -> LuaResult<()> {
+        let ud: LuaAnyUserData = luaself.get("_self")?;
+        let ref_self = ud.borrow::<LoopHandle<'static>>()?;
+        let ud: LuaAnyUserData = source.get("_self")?;
+        let source = ud.take::<timer::Timer>()?; // FIXME: allow other source types
+        ref_self.0.insert_source(source.0,
+            move |_,_,data| { // FIXME
+                if callback.is_some() {
+                    callback.as_ref().unwrap().call::<LuaTable,()>( (*data).clone() )
+                        .unwrap();
+                }
+            }).unwrap(); // FIXME: should return rs_calloop::...
+        Ok(())
+    }
+
 }
 

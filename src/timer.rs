@@ -12,7 +12,7 @@ fn calloop_timer(lua: &'static Lua) -> LuaResult<LuaTable> {
 }
 
 // Timer
-struct Timer<'tm> (rs_timer::Timer<LuaValue<'tm>>);
+pub(crate) struct Timer<'tm> (pub(crate) rs_timer::Timer<LuaValue<'tm>>);
 impl LuaUserData for Timer<'_> {}
 impl<'tm> Timer<'tm> {
     fn new(lua: &'static Lua, _: ()) -> LuaResult<LuaTable<'tm>> {
